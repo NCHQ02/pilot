@@ -8,8 +8,19 @@ import { GoogleGenAI, Type } from "@google/genai";
 import type { Slider, SliderSuggestion, Modulation } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let ai: GoogleGenAI | null = null;
 const model = 'gemini-2.5-pro';
+
+const getAI = () => {
+    if (!ai) {
+        const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+        if (!apiKey) {
+            throw new Error('Gemini API Key is not configured');
+        }
+        ai = new GoogleGenAI({ apiKey });
+    }
+    return ai;
+};
 
 // A centralized, detailed system instruction for all code-generation prompts.
 const SYSTEM_INSTRUCTION = `You are an expert GLSL shader developer. You are modifying a single GLSL fragment shader expression that will be injected into a larger template.
@@ -79,7 +90,7 @@ Example Output:
   }
 ]`;
 
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
         model,
         contents: prompt,
         config: {
@@ -126,7 +137,7 @@ Your response MUST be ONLY a JSON array of objects, with one object for each sli
 - "newDescription": The new description.
 `;
 
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
         model,
         contents: prompt,
         config: {
@@ -187,7 +198,7 @@ Example Output:
   { "suggestion": "Change colors from red to blue over time", "type": "creative" }
 ]
 `;
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
         model,
         contents: prompt,
         config: {
@@ -217,7 +228,7 @@ Code Snippet:
 ${snippet}
 \`\`\`
 `;
-    const response = await ai.models.generateContent({ model, contents: prompt });
+    const response = await getAI().models.generateContent({ model, contents: prompt });
     return response.text;
 };
 
@@ -265,7 +276,7 @@ Your response must be a JSON object with two fields:
 
 CRITICAL RULE: For any request that introduces a new visual element or behavior (like ripples, twists, color cycling), you MUST choose "smart_slider". Do not choose "modify_code" for these creative tasks.`;
 
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
         model,
         contents: prompt,
         config: {
@@ -309,7 +320,7 @@ Example response:
   { "variableName": "slider_speed", "newValue": 5.0 }
 ]`;
 
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
         model,
         contents: prompt,
         config: {
@@ -378,7 +389,7 @@ You must:
   "modifiedCode": "vec2 p = (FC.xy * 2.0 - r) / r.y;\\nfloat angle = p.y * slider_twist + t;\\np.x += sin(angle) * 0.1;\\no.rgb = vec3(p.x, p.y, 1.0);"
 }
 `;
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
         model,
         contents: prompt,
         config: {
@@ -438,7 +449,7 @@ Your task is to replace any existing camera setup (static or otherwise) with a n
 
 Your response must be a JSON object with a single key, "modifiedCode", containing the complete, new shader code string. This code will be placed directly inside the 'main' function. Do NOT include the 'void main() { ... }' wrapper or any helper functions.
 `;
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
         model,
         contents: prompt,
         config: {
@@ -470,7 +481,7 @@ ${shaderCode}
 Modify the code to fulfill the request, following all rules defined above.
 Your response must be a JSON object with a single key, "modifiedCode", containing the new shader code string. This code will be placed directly inside the 'main' function. Do NOT include the 'void main() { ... }' wrapper or any helper functions.
 `;
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
         model,
         contents: prompt,
         config: {
@@ -506,7 +517,7 @@ Analyze the error and the code, correct the syntax or logic error, and return th
 
 Your response must be a JSON object with a single key, "fixedCode", containing the corrected shader code string. This code will be placed directly inside the 'main' function. Do NOT include the 'void main() { ... }' wrapper or any helper functions.
 `;
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
         model,
         contents: prompt,
         config: {
@@ -567,7 +578,7 @@ Return a JSON array of Modulation objects. Each object must have:
 - 'enabled': true
 `;
 
-    const response = await ai.models.generateContent({
+    const response = await getAI().models.generateContent({
         model,
         contents: prompt,
         config: {
