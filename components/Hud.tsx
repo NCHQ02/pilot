@@ -59,20 +59,27 @@ export const Hud: React.FC = () => {
             const altitude = cameraRef.current.position[1] + 1.49; // Offset by 1.49 so 0 is roughly "ground" level
             const vY = cameraVelocityRef.current[1];
 
-            // --- STYLES & COLORS based on Collision State ---
+            // --- STYLES & COLORS based on Collision State - Runeterra Theme ---
             const currentState = collisionStateRef.current;
-            let baseColorStr = '0, 255, 255'; // Cyan (Default)
+            let baseColorStr = '120, 200, 255'; // Magical Blue (Default)
+            let glowColorStr = '180, 150, 255'; // Purple glow
             if (currentState === 'approaching') {
-                baseColorStr = '255, 200, 0'; // Yellow Warning
+                baseColorStr = '255, 180, 80'; // Gold Warning (Demacia)
+                glowColorStr = '255, 220, 100';
             } else if (currentState === 'colliding') {
-                baseColorStr = '255, 50, 50'; // Red Alert
+                baseColorStr = '255, 80, 100'; // Red Alert (Noxus)
+                glowColorStr = '255, 120, 140';
             }
 
             if (hudAlpha > 0.01) {
-                ctx.strokeStyle = `rgba(${baseColorStr}, ${0.5 * hudAlpha})`;
-                ctx.fillStyle = `rgba(${baseColorStr}, ${0.8 * hudAlpha})`;
-                ctx.lineWidth = 2;
-                ctx.font = 'bold 12px monospace';
+                // Add magical glow effect
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = `rgba(${glowColorStr}, ${0.6 * hudAlpha})`;
+
+                ctx.strokeStyle = `rgba(${baseColorStr}, ${0.6 * hudAlpha})`;
+                ctx.fillStyle = `rgba(${baseColorStr}, ${0.9 * hudAlpha})`;
+                ctx.lineWidth = 2.5;
+                ctx.font = 'bold 13px monospace';
 
                 // --- HORIZON LINE ---
                 const fovY = Math.PI / 2; // Assume 90 deg FOV
@@ -102,22 +109,32 @@ export const Hud: React.FC = () => {
                 const altText = `ALT: ${altitude.toFixed(2)}`;
                 const vsText = `V/S: ${(vY * 10).toFixed(2)}`;
 
-                ctx.fillStyle = `rgba(0, 0, 0, ${0.5 * hudAlpha})`;
-                ctx.fillRect(cx + 345, cy - 52, 80, 18);
-                ctx.fillRect(cx + 345, cy - 32, 80, 18);
+                // Background with magical border
+                ctx.fillStyle = `rgba(10, 15, 30, ${0.7 * hudAlpha})`;
+                ctx.fillRect(cx + 345, cy - 52, 85, 18);
+                ctx.fillRect(cx + 345, cy - 32, 85, 18);
 
-                ctx.fillStyle = `rgba(${baseColorStr}, ${0.8 * hudAlpha})`;
+                ctx.strokeStyle = `rgba(${glowColorStr}, ${0.4 * hudAlpha})`;
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(cx + 345, cy - 52, 85, 18);
+                ctx.strokeRect(cx + 345, cy - 32, 85, 18);
+
+                ctx.fillStyle = `rgba(${baseColorStr}, ${0.95 * hudAlpha})`;
                 ctx.textAlign = 'left';
                 ctx.fillText(altText, cx + 350, cy - 40);
                 ctx.fillText(vsText, cx + 350, cy - 20);
 
-                // Heading
+                // Heading with magical styling
                 const headingDeg = (((-yaw * 180 / Math.PI) % 360) + 360) % 360;
                 const headingText = `${headingDeg.toFixed(0)}°`;
-                ctx.fillStyle = `rgba(0, 0, 0, ${0.5 * hudAlpha})`;
-                ctx.fillRect(cx - 20, 48, 40, 18);
+                ctx.fillStyle = `rgba(10, 15, 30, ${0.7 * hudAlpha})`;
+                ctx.fillRect(cx - 22, 48, 44, 18);
 
-                ctx.fillStyle = `rgba(${baseColorStr}, ${0.8 * hudAlpha})`;
+                ctx.strokeStyle = `rgba(${glowColorStr}, ${0.4 * hudAlpha})`;
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(cx - 22, 48, 44, 18);
+
+                ctx.fillStyle = `rgba(${baseColorStr}, ${0.95 * hudAlpha})`;
                 ctx.textAlign = 'center';
                 ctx.fillText(headingText, cx, 60);
 
@@ -125,16 +142,32 @@ export const Hud: React.FC = () => {
                 const crHeight = 100;
                 const crY = cy;
                 const crX = cx + 330;
+
+                // Background
+                ctx.fillStyle = `rgba(10, 15, 30, ${0.6 * hudAlpha})`;
+                ctx.fillRect(crX - 4, crY - crHeight / 2, 8, crHeight);
+
+                // Border with glow
+                ctx.strokeStyle = `rgba(${glowColorStr}, ${0.4 * hudAlpha})`;
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(crX - 4, crY - crHeight / 2, 8, crHeight);
+
+                // Center line
                 ctx.strokeStyle = `rgba(${baseColorStr}, ${0.3 * hudAlpha})`;
-                ctx.fillStyle = `rgba(0, 0, 0, ${0.3 * hudAlpha})`;
-                ctx.fillRect(crX - 3, crY - crHeight / 2, 6, crHeight);
-                ctx.strokeRect(crX - 3, crY - crHeight / 2, 6, crHeight);
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(crX - 6, crY);
+                ctx.lineTo(crX + 6, crY);
+                ctx.stroke();
 
                 const vYClamped = Math.max(-0.5, Math.min(0.5, vY));
                 const indicatorY = crY - (vYClamped / 0.5) * (crHeight / 2);
 
-                ctx.fillStyle = `rgba(${baseColorStr}, ${0.8 * hudAlpha})`;
-                ctx.fillRect(crX - 3, indicatorY - 2, 6, 4);
+                // Indicator with enhanced glow
+                ctx.shadowBlur = 20;
+                ctx.fillStyle = `rgba(${baseColorStr}, ${0.95 * hudAlpha})`;
+                ctx.fillRect(crX - 4, indicatorY - 3, 8, 6);
+                ctx.shadowBlur = 15;
             }
 
             animationFrameId = requestAnimationFrame(render);

@@ -1,11 +1,11 @@
 
 {
   "sessionId": "1",
-  "shaderCode": "vec3 a=vec3(1,0,0),q,p=u_cameraPosition;vec2 centered_uv=FC.xy*2.-r;float rollAngle=u_cameraRoll;mat2 rollMat=mat2(cos(rollAngle),-sin(rollAngle),sin(rollAngle),cos(rollAngle));centered_uv=rollMat*centered_uv;vec3 v=vec3(centered_uv/slider_zoom,r.y);v=rotate3D(u_cameraRotation.y,a.yxy)*v;vec3 camRight=normalize(cross(a.yxy,v));v=rotate3D(slider_cameraXRotation+u_cameraRotation.x,camRight)*v;vec3 rd=normalize(v);for(float d,i,l;l++<slider_maxIterations;p-=rd*d)for(q=p,d=-q.y,i=58.;i>.05;i*=slider_fractalScale)d=max(d,min(min(q=i*.9-abs(mod(rotate3D(slider_fractalRotation + sin(t*1.+q.y*5.)*slider_fractalPulseStrength,a.zxz)*q,i+i)-i),q.y).x,q.z)),l>1e2?(d+=1e-5,v/=v,o):(o.rgb+=max(5e-4-d*d,0.)*(vec3(1.)+vec3(sin(l*.1+t),cos(l*.15+t),sin(l*.2+t))*slider_colorEffectStrength),o);o*=log(7.-p.y)*.1;o.rgb*=slider_brightness;vec3 sunDir=normalize(vec3(0.,slider_sunElevation,1.));float sunDot=max(0.,dot(rd,sunDir));vec3 sky=mix(vec3(1.0,0.3,0.1),vec3(0.05,0.2,0.5),clamp(rd.y*.8+.2,0.,1.));sky+=vec3(1.0,0.7,0.3)*pow(sunDot,8.)*2.0;float dist=length(u_cameraPosition-p);float fog=1.-exp(-dist*slider_atmosphereDensity*.01);o.rgb=mix(o.rgb,sky*slider_brightness,fog);o.rgb+=vec3(1.0,0.9,0.5)*smoothstep(.995,1.,sunDot)*10.*slider_brightness*smoothstep(50.,500.,dist);",
+  "shaderCode": "vec3 a=vec3(1,0,0),q,p=u_cameraPosition;vec2 centered_uv=FC.xy*2.-r;float rollAngle=u_cameraRoll;mat2 rollMat=mat2(cos(rollAngle),-sin(rollAngle),sin(rollAngle),cos(rollAngle));centered_uv=rollMat*centered_uv;vec3 v=vec3(centered_uv/slider_zoom,r.y);v=rotate3D(u_cameraRotation.y,a.yxy)*v;vec3 camRight=normalize(cross(a.yxy,v));v=rotate3D(slider_cameraXRotation+u_cameraRotation.x,camRight)*v;vec3 rd=normalize(v);vec3 origP=p;for(float d,i,l;l++<slider_maxIterations;p-=rd*d){for(q=p,d=-q.y,i=58.;i>.05;i*=slider_fractalScale)d=max(d,min(min(q=i*.9-abs(mod(rotate3D(slider_fractalRotation+sin(t*1.+q.y*5.)*slider_fractalPulseStrength,a.zxz)*q,i+i)-i),q.y).x,q.z));if(l>1e2){d+=1e-5;v/=v;break;}float biomeNoise=sin(p.x*slider_biomeScale+t*.1)*cos(p.z*slider_biomeScale);float biomeId=biomeNoise*slider_biomeIntensity;vec3 biomeColor;if(biomeId<-0.6)biomeColor=vec3(0.1,0.5,0.9)*1.5;else if(biomeId<-0.2)biomeColor=vec3(0.9,0.7,0.2)*1.3;else if(biomeId<0.2)biomeColor=vec3(0.3,0.9,0.4)*1.2;else if(biomeId<0.6)biomeColor=vec3(0.9,0.3,0.6)*1.4;else biomeColor=vec3(0.7,0.2,0.9)*1.3;float magic=sin(p.y*3.+t*2.)*cos(p.x*2.+t)*0.5+0.5;biomeColor+=vec3(0.8,0.6,1.0)*magic*slider_magicIntensity*0.3;o.rgb+=max(5e-4-d*d,0.)*(biomeColor+vec3(sin(l*.1+t),cos(l*.15+t),sin(l*.2+t))*slider_colorEffectStrength);}o*=log(7.-p.y)*.1;o.rgb*=slider_brightness;vec3 sunDir=normalize(vec3(sin(t*0.05)*0.3,slider_sunElevation,cos(t*0.05)*0.3+1.));float sunDot=max(0.,dot(rd,sunDir));vec3 skyTop=vec3(0.1,0.15,0.4)*slider_skyIntensity;vec3 skyHorizon=mix(vec3(0.9,0.5,0.7),vec3(0.6,0.3,0.8),sin(t*0.1)*0.5+0.5)*slider_skyIntensity;vec3 sky=mix(skyHorizon,skyTop,clamp(rd.y*.6+.3,0.,1.));sky+=vec3(1.0,0.8,0.5)*pow(sunDot,8.)*3.0*slider_sunPower;float dist=length(origP-p);float fog=1.-exp(-dist*slider_atmosphereDensity*.01);vec3 fogColor=mix(skyHorizon*0.8,vec3(0.6,0.4,0.9),sin(origP.x*0.1+t*0.2)*0.5+0.5);o.rgb=mix(o.rgb,fogColor*slider_brightness,fog);o.rgb+=vec3(1.0,0.9,0.6)*smoothstep(.995,1.,sunDot)*15.*slider_brightness*smoothstep(50.,500.,dist);vec3 stars=vec3(pow(max(0.,sin(rd.x*200.+t*0.01)*sin(rd.y*200.)*sin(rd.z*200.)),20.0));o.rgb+=stars*slider_starIntensity*(1.-clamp(rd.y+0.5,0.,1.));",
   "sliders": [
     {
       "name": "Zoom Level",
-      "description": "Adjusts the overall zoom level of the scene. Lower values zoom in, higher values zoom out.",
+      "description": "Adjusts the overall zoom level of the scene.",
       "variableName": "slider_zoom",
       "min": 0,
       "max": 5,
@@ -14,7 +14,7 @@
     },
     {
       "name": "Fractal Scale",
-      "description": "Controls the self-similarity scaling factor of the fractal iterations. A smaller value makes the fractal zoom in more with each step.",
+      "description": "Controls the self-similarity scaling factor of the fractal iterations.",
       "variableName": "slider_fractalScale",
       "min": 0,
       "max": 0.6,
@@ -23,7 +23,7 @@
     },
     {
       "name": "Fractal Rotation",
-      "description": "Adjusts the internal rotation applied to fractal components in each iteration, affecting the fractal's overall structure and repetition.",
+      "description": "Adjusts the internal rotation applied to fractal components in each iteration.",
       "variableName": "slider_fractalRotation",
       "min": 0,
       "max": 2,
@@ -32,7 +32,7 @@
     },
     {
       "name": "Max Iterations",
-      "description": "Controls the maximum number of steps the raymarcher takes. Increase this if distant objects are getting cut off.",
+      "description": "Controls the maximum number of steps the raymarcher takes.",
       "variableName": "slider_maxIterations",
       "min": 10,
       "max": 500,
@@ -46,56 +46,116 @@
       "min": 0,
       "max": 5,
       "step": 0.01,
-      "defaultValue": 3.51
+      "defaultValue": 3.5
     },
     {
       "name": "Color Dynamic Strength",
-      "description": "Adjusts the intensity of the dynamic color effect based on raymarching iteration count and time.",
+      "description": "Adjusts the intensity of the dynamic color effect.",
       "variableName": "slider_colorEffectStrength",
       "min": 0,
       "max": 5,
       "step": 0.05,
-      "defaultValue": 1.9
+      "defaultValue": 1.2
     },
     {
       "name": "Fractal Pulse Strength",
-      "description": "Controls the amplitude of the time-varying twist applied to the fractal's internal geometry along the Y-axis. Higher values result in a more intense pulsating and stretching effect.",
+      "description": "Controls the amplitude of the time-varying twist applied to the fractal.",
       "variableName": "slider_fractalPulseStrength",
       "min": 0,
       "max": 1,
       "step": 0.01,
-      "defaultValue": 0
+      "defaultValue": 0.15
     },
     {
       "name": "Atmosphere Density",
-      "description": "Controls the thickness of the distance fog, blending distant structures into the sunset sky color.",
+      "description": "Controls the thickness of the distance fog.",
       "variableName": "slider_atmosphereDensity",
       "min": 0,
       "max": 10,
       "step": 0.1,
-      "defaultValue": 0.08
+      "defaultValue": 0.12
     },
     {
       "name": "Sun Elevation",
-      "description": "Controls the height of the sun in the sky, changing the atmosphere from day to sunset to night.",
+      "description": "Controls the height of the sun in the sky.",
       "variableName": "slider_sunElevation",
       "min": -0.2,
       "max": 1,
       "step": 0.01,
-      "defaultValue": 0.15
+      "defaultValue": 0.25
+    },
+    {
+      "name": "Biome Scale",
+      "description": "Controls the size of different regions in Runeterra. Lower values create larger regions.",
+      "variableName": "slider_biomeScale",
+      "min": 0.01,
+      "max": 0.5,
+      "step": 0.01,
+      "defaultValue": 0.08
+    },
+    {
+      "name": "Biome Intensity",
+      "description": "Controls how distinct the different regions of Runeterra are.",
+      "variableName": "slider_biomeIntensity",
+      "min": 0,
+      "max": 2,
+      "step": 0.05,
+      "defaultValue": 1.2
+    },
+    {
+      "name": "Magic Intensity",
+      "description": "Controls the intensity of magical energy effects flowing through the world.",
+      "variableName": "slider_magicIntensity",
+      "min": 0,
+      "max": 3,
+      "step": 0.05,
+      "defaultValue": 1.5
+    },
+    {
+      "name": "Sky Intensity",
+      "description": "Controls the brightness and saturation of the sky.",
+      "variableName": "slider_skyIntensity",
+      "min": 0,
+      "max": 3,
+      "step": 0.05,
+      "defaultValue": 1.8
+    },
+    {
+      "name": "Sun Power",
+      "description": "Controls the intensity and glow of the sun.",
+      "variableName": "slider_sunPower",
+      "min": 0,
+      "max": 3,
+      "step": 0.05,
+      "defaultValue": 1.2
+    },
+    {
+      "name": "Star Intensity",
+      "description": "Controls the visibility of stars in the sky.",
+      "variableName": "slider_starIntensity",
+      "min": 0,
+      "max": 2,
+      "step": 0.05,
+      "defaultValue": 0.3
     }
   ],
   "uniforms": {
     "slider_cameraXRotation": 0,
-    "slider_zoom": 3.95,
+    "slider_zoom": 2.75,
     "slider_fractalScale": 0.37,
     "slider_fractalRotation": 1.09,
-    "slider_brightness": 4.25,
+    "slider_brightness": 3.5,
     "slider_maxIterations": 115,
-    "slider_colorEffectStrength": 1.9,
-    "slider_fractalPulseStrength": 0,
-    "slider_atmosphereDensity": 0.08,
-    "slider_sunElevation": 0.15
+    "slider_colorEffectStrength": 1.2,
+    "slider_fractalPulseStrength": 0.15,
+    "slider_atmosphereDensity": 0.12,
+    "slider_sunElevation": 0.25,
+    "slider_biomeScale": 0.08,
+    "slider_biomeIntensity": 1.2,
+    "slider_magicIntensity": 1.5,
+    "slider_skyIntensity": 1.8,
+    "slider_sunPower": 1.2,
+    "slider_starIntensity": 0.3
   },
   "cameraControlsEnabled": true,
   "terraformConfig": {

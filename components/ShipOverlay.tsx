@@ -165,17 +165,23 @@ void main() {
         vec3 n = getNormal(p);
         vec3 l = normalize(vec3(1.0, 2.0, 3.0)); // Fixed light source
 
-        // Basic lighting
-        float diff = max(dot(n, l), 0.0);
-        float amb = 0.1;
-        vec3 col = vec3(0.2, 0.25, 0.3) * (diff + amb);
-        
-        // Rim lighting
-        float rim = pow(1.0 - max(dot(-rd, n), 0.0), 4.0);
-        col += vec3(0.1, 0.6, 1.0) * rim * 0.8;
-
         // Calculate local coordinates for emissive mapping
         vec3 localP = (inverse(u_shipRot) * vec4(p, 1.0)).xyz;
+
+        // Runeterra-themed lighting
+        float diff = max(dot(n, l), 0.0);
+        float amb = 0.15;
+        vec3 baseColor = vec3(0.15, 0.2, 0.35);
+        vec3 col = baseColor * (diff + amb);
+
+        // Magical rim lighting (purple-blue)
+        float rim = pow(1.0 - max(dot(-rd, n), 0.0), 3.5);
+        col += vec3(0.4, 0.5, 1.0) * rim * 1.2;
+
+        // Add magical energy veins
+        float veins = sin(localP.x * 15.0 + u_time) * sin(localP.y * 10.0) * sin(localP.z * 12.0);
+        veins = smoothstep(0.7, 0.95, veins);
+        col += vec3(0.6, 0.4, 1.0) * veins * 0.5;
         
         // --- Engine Glow ---
         // Wider mask to accommodate the ignition animation starting point
@@ -207,9 +213,10 @@ void main() {
         }
         float finalSustainedGlow = mix(0.1, sustainedIntensity, u_thrust * sustainedVisibility);
 
-        // Combine glows
+        // Combine glows with magical colors
         float totalGlow = finalSustainedGlow + pulseGlow;
-        col += vec3(1.0, 0.4, 0.05) * engineMask * totalGlow;
+        vec3 engineColor = mix(vec3(0.4, 0.6, 1.0), vec3(0.8, 0.5, 1.0), sin(u_time * 2.0) * 0.5 + 0.5);
+        col += engineColor * engineMask * totalGlow * 1.5;
 
         // Flap Glow - asymmetric for turning
         float leftBrakeAmount = u_brake + max(0.0, u_yaw_velocity * 2.5); // Turn right, left brake lights up
