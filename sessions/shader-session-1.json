@@ -1,0 +1,305 @@
+
+{
+  "sessionId": "1",
+  "shaderCode": "vec3 a=vec3(1,0,0),q,p=u_cameraPosition;vec2 centered_uv=FC.xy*2.-r;float rollAngle=u_cameraRoll;mat2 rollMat=mat2(cos(rollAngle),-sin(rollAngle),sin(rollAngle),cos(rollAngle));centered_uv=rollMat*centered_uv;vec3 v=vec3(centered_uv/slider_zoom,r.y);v=rotate3D(u_cameraRotation.y,a.yxy)*v;vec3 camRight=normalize(cross(a.yxy,v));v=rotate3D(slider_cameraXRotation+u_cameraRotation.x,camRight)*v;vec3 rd=normalize(v);for(float d,i,l;l++<slider_maxIterations;p-=rd*d)for(q=p,d=-q.y,i=58.;i>.05;i*=slider_fractalScale)d=max(d,min(min(q=i*.9-abs(mod(rotate3D(slider_fractalRotation + sin(t*1.+q.y*5.)*slider_fractalPulseStrength,a.zxz)*q,i+i)-i),q.y).x,q.z)),l>1e2?(d+=1e-5,v/=v,o):(o.rgb+=max(5e-4-d*d,0.)*(vec3(1.)+vec3(sin(l*.1+t),cos(l*.15+t),sin(l*.2+t))*slider_colorEffectStrength),o);o*=log(7.-p.y)*.1;o.rgb*=slider_brightness;vec3 sunDir=normalize(vec3(0.,slider_sunElevation,1.));float sunDot=max(0.,dot(rd,sunDir));vec3 sky=mix(vec3(1.0,0.3,0.1),vec3(0.05,0.2,0.5),clamp(rd.y*.8+.2,0.,1.));sky+=vec3(1.0,0.7,0.3)*pow(sunDot,8.)*2.0;float dist=length(u_cameraPosition-p);float fog=1.-exp(-dist*slider_atmosphereDensity*.01);o.rgb=mix(o.rgb,sky*slider_brightness,fog);o.rgb+=vec3(1.0,0.9,0.5)*smoothstep(.995,1.,sunDot)*10.*slider_brightness*smoothstep(50.,500.,dist);",
+  "sliders": [
+    {
+      "name": "Zoom Level",
+      "description": "Adjusts the overall zoom level of the scene. Lower values zoom in, higher values zoom out.",
+      "variableName": "slider_zoom",
+      "min": 0,
+      "max": 5,
+      "step": 0.05,
+      "defaultValue": 2.75
+    },
+    {
+      "name": "Fractal Scale",
+      "description": "Controls the self-similarity scaling factor of the fractal iterations. A smaller value makes the fractal zoom in more with each step.",
+      "variableName": "slider_fractalScale",
+      "min": 0,
+      "max": 0.6,
+      "step": 0.01,
+      "defaultValue": 0.37
+    },
+    {
+      "name": "Fractal Rotation",
+      "description": "Adjusts the internal rotation applied to fractal components in each iteration, affecting the fractal's overall structure and repetition.",
+      "variableName": "slider_fractalRotation",
+      "min": 0,
+      "max": 2,
+      "step": 0.01,
+      "defaultValue": 1.09
+    },
+    {
+      "name": "Max Iterations",
+      "description": "Controls the maximum number of steps the raymarcher takes. Increase this if distant objects are getting cut off.",
+      "variableName": "slider_maxIterations",
+      "min": 10,
+      "max": 500,
+      "step": 1,
+      "defaultValue": 115
+    },
+    {
+      "name": "Brightness",
+      "description": "Adjusts the overall brightness of the scene.",
+      "variableName": "slider_brightness",
+      "min": 0,
+      "max": 5,
+      "step": 0.01,
+      "defaultValue": 3.51
+    },
+    {
+      "name": "Color Dynamic Strength",
+      "description": "Adjusts the intensity of the dynamic color effect based on raymarching iteration count and time.",
+      "variableName": "slider_colorEffectStrength",
+      "min": 0,
+      "max": 5,
+      "step": 0.05,
+      "defaultValue": 1.9
+    },
+    {
+      "name": "Fractal Pulse Strength",
+      "description": "Controls the amplitude of the time-varying twist applied to the fractal's internal geometry along the Y-axis. Higher values result in a more intense pulsating and stretching effect.",
+      "variableName": "slider_fractalPulseStrength",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "defaultValue": 0
+    },
+    {
+      "name": "Atmosphere Density",
+      "description": "Controls the thickness of the distance fog, blending distant structures into the sunset sky color.",
+      "variableName": "slider_atmosphereDensity",
+      "min": 0,
+      "max": 10,
+      "step": 0.1,
+      "defaultValue": 0.08
+    },
+    {
+      "name": "Sun Elevation",
+      "description": "Controls the height of the sun in the sky, changing the atmosphere from day to sunset to night.",
+      "variableName": "slider_sunElevation",
+      "min": -0.2,
+      "max": 1,
+      "step": 0.01,
+      "defaultValue": 0.15
+    }
+  ],
+  "uniforms": {
+    "slider_cameraXRotation": 0,
+    "slider_zoom": 3.95,
+    "slider_fractalScale": 0.37,
+    "slider_fractalRotation": 1.09,
+    "slider_brightness": 4.25,
+    "slider_maxIterations": 115,
+    "slider_colorEffectStrength": 1.9,
+    "slider_fractalPulseStrength": 0,
+    "slider_atmosphereDensity": 0.08,
+    "slider_sunElevation": 0.15
+  },
+  "cameraControlsEnabled": true,
+  "terraformConfig": {
+    "targets": [
+      {
+        "variableName": "slider_fractalRotation",
+        "type": "velocity",
+        "magnitude": 0.005,
+        "probability": 0.8
+      },
+      {
+        "variableName": "slider_fractalScale",
+        "type": "velocity",
+        "magnitude": 0.0025,
+        "probability": 0.8
+      },
+      {
+        "variableName": "slider_zoom",
+        "type": "velocity",
+        "magnitude": 0.001,
+        "probability": 0.8
+      }
+    ]
+  },
+  "controlConfig": {
+    "invertStrafe": true,
+    "forwardVelocity": 0.3,
+    "strafeVelocity": 0.3,
+    "ascendVelocity": 0.3,
+    "pitchVelocity": 0.3,
+    "yawVelocity": 0.3,
+    "invertForward": true
+  },
+  "soundConfig": {
+    "enabled": true,
+    "masterVolume": 0.5,
+    "reverb": {
+      "enabled": true,
+      "mix": 0.65,
+      "decay": 7,
+      "tone": 2200
+    },
+    "drone": {
+      "enabled": true,
+      "gain": 0.16,
+      "filter": 120,
+      "pitch": -4.5
+    },
+    "atmosphere": {
+      "enabled": true,
+      "gain": 0,
+      "texture": "grit"
+    },
+    "melody": {
+      "enabled": true,
+      "gain": 0.1,
+      "density": 0.4,
+      "scale": "dorian"
+    },
+    "arp": {
+      "enabled": true,
+      "gain": 0,
+      "speed": 1,
+      "octaves": 2,
+      "filter": 600,
+      "direction": "updown"
+    },
+    "rhythm": {
+      "enabled": true,
+      "gain": 0.17,
+      "bpm": 50,
+      "filter": 150
+    },
+    "modulations": [
+      {
+        "id": "1",
+        "enabled": true,
+        "source": "speed",
+        "target": "drone.filter",
+        "amount": 0.4
+      },
+      {
+        "id": "5",
+        "enabled": true,
+        "source": "altitude",
+        "target": "atmosphere.gain",
+        "amount": 0.15
+      },
+      {
+        "id": "new1",
+        "enabled": true,
+        "source": "pitch",
+        "target": "arp.direction",
+        "amount": 1.5
+      },
+      {
+        "id": "new2",
+        "enabled": true,
+        "source": "speed",
+        "target": "arp.speed",
+        "amount": 0.15
+      },
+      {
+        "id": "new3",
+        "enabled": true,
+        "source": "pitch",
+        "target": "arp.octaves",
+        "amount": 1
+      },
+      {
+        "source": "altitude",
+        "target": "rhythm.bpm",
+        "amount": 5,
+        "enabled": true,
+        "id": "ac5a1ec2-ab73-40e3-85be-e488a17a6c5b"
+      },
+      {
+        "source": "altitude",
+        "target": "arp.speed",
+        "amount": 0.08,
+        "enabled": true,
+        "id": "bc74d4c4-b018-4f4e-9268-43ab25c99279"
+      },
+      {
+        "source": "altitude",
+        "target": "arp.octaves",
+        "amount": 0.1,
+        "enabled": true,
+        "id": "a2a78857-144e-4b76-9bc2-a1492d4a777d"
+      },
+      {
+        "source": "altitude",
+        "target": "drone.pitch",
+        "amount": -0.1,
+        "enabled": true,
+        "id": "90e51d2e-283a-481c-8cd8-568a3e4ff128"
+      },
+      {
+        "id": "dea51834-d142-43e7-8bde-b3b30204713e",
+        "enabled": true,
+        "source": "speed",
+        "target": "arp.gain",
+        "amount": 0.1
+      }
+    ]
+  },
+  "source": "https://x.com/XorDev/status/1631809422866489344",
+  "shipConfig": {
+    "complexity": 10,
+    "fold1": 1.7,
+    "fold2": 1.37,
+    "fold3": -0.61,
+    "scale": 1.36,
+    "stretch": 1.24,
+    "taper": 0,
+    "twist": 0,
+    "asymmetryX": 0,
+    "asymmetryY": 0,
+    "asymmetryZ": 0,
+    "twistAsymX": 0,
+    "scaleAsymX": 0,
+    "fold1AsymX": 0,
+    "fold2AsymX": 0,
+    "chaseDistance": 9.14,
+    "chaseVerticalOffset": 0.0,
+    "pitchOffset": 0.0,
+    "generalScale": 0.39,
+    "translucency": 0.94,
+    "modulations": [
+      {
+        "id": "1d12faa0-c5b2-47a2-ab70-a3809a8823ed",
+        "enabled": true,
+        "source": "speed",
+        "target": "fold3",
+        "amount": 0.59
+      },
+      {
+        "id": "5a4a800e-f6dc-4a34-a2f2-078a50b59b20",
+        "enabled": true,
+        "source": "turning",
+        "target": "twist",
+        "amount": 0.12
+      },
+      {
+        "id": "900ff66c-1fa2-4675-bcff-55d548c64e31",
+        "enabled": true,
+        "source": "pitch",
+        "target": "twistAsymX",
+        "amount": 0.04
+      },
+      {
+        "id": "87d0076b-5b09-40d5-9071-a72dc4315685",
+        "enabled": true,
+        "source": "descent",
+        "target": "twistAsymX",
+        "amount": 0.06
+      }
+    ]
+  },
+  "canvasSize": "100%",
+  "viewMode": "chase",
+  "isHdEnabled": false,
+  "isFpsEnabled": false,
+  "isHudEnabled": true,
+  "collisionThresholdRed": 0.002,
+  "collisionThresholdYellow": 0.02
+}

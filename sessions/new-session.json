@@ -1,0 +1,14 @@
+{
+  "shaderCode": "o.rgb = vec3(FC.x / r.x, FC.y / r.y, 0.5);",
+  "sliders": [],
+  "uniforms": {},
+  "cameraControlsEnabled": false,
+  "history": [
+    {
+      "shaderCode": "o.rgb = vec3(FC.x / r.x, FC.y / r.y, 0.5);",
+      "sliders": [],
+      "cameraControlsEnabled": false
+    }
+  ],
+  "historyIndex": 0
+}
